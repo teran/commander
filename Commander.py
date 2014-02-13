@@ -5,11 +5,44 @@ import subprocess
 import pyzabbix
 
 class Commander():
-    def __init__(self, api_url, login='admin', password='zabbix',
+    _api = None
+    commands = [
+        'grouplist',
+        'hostlist',
+        'p_exec',
+        'reload',
+        'ssh'
+    ]
+    def __init__(self, api_url='http://localhost', login='admin',
+                 password='zabbix',
                  datadir='.commander'):
-        self.api = pyzabbix.ZabbixAPI(api_url)
-        self.api.login(login, password)
+        self.api_url = api_url
+        self.login = login
+        self.password = password
         self.datadir = datadir
+
+    @property
+    def api(self):
+        if self._api:
+            return self._api
+
+        self._api = pyzabbix.ZabbixAPI(self.api_url)
+        self._api.login(self.login, self.password)
+
+        return self._api
+
+
+    def _set_title(self, title='cmd.py'):
+        print "\033]0;%s\007" % title
+
+    def _read_cache(self, file):
+        f = open(os.path.join(self.datadir, file), 'r')
+        res = []
+        for l in f.read().split("\n"):
+            if l != '':
+                res.append(l)
+        f.close()
+        return res
 
     def _store_cache(self, file, data):
         f = open(os.path.join(self.datadir, file), 'w')
@@ -20,25 +53,42 @@ class Commander():
         try:
             method = getattr(self, cmd[0])
         except AttributeError:
-            return 'E: No such command: %s' % cmd
+            print 'E: No such command: %s' % cmd
+            return
 
         try:
-            return method(cmd[1:])
+            method(cmd[1:])
         except TypeError:
-            return 'E: Wrong usage, try help to get how :)'
+            print 'E: Wrong usage, try help to get how :)'
+            return
 
     def grouplist(self, *args):
-        f = open(os.path.join(self.datadir, '_groups.dat'))
-        for group in f.read().split("\n"):
-            if group == '':
-                continue
-            print '  %s' % group
-        f.close()
-        return 'I: Grouplist finished'
+        grouplist = self._read_cache('_groups.dat')
+        for g in grouplist:
+            print g
+
+        print 'Total: %s' % len(grouplist)
+
+    def hostlist(self, *args):
+        try:
+            hostlist = self._read_cache(args[0][0]+'.dat')
+        except IndexError:
+            hostlist = []
+            grouplist = self._read_cache('_groups.dat')
+            for group in grouplist:
+                for host in self._read_cache(group+'.dat'):
+                    hostlist.append(host)
+
+        for h in hostlist:
+            print h
+
+        print 'Total: %s' % len(hostlist)
 
     def p_exec(self, *args):
         group = args[0][0]
         cmd = ' '.join(args[0][1:])
+
+        self._set_title('p_exec %s' % group)
 
         l = open(os.path.join(self.datadir, group+'.dat'))
         subprocess.call([
@@ -49,7 +99,6 @@ class Commander():
             '-'
         ], stdin=l)
         l.close()
-        return 'I: Parallel execution ended'
 
     def reload(self, *args):
         groups = self.api.hostgroup.get(output='extend')
@@ -64,9 +113,5 @@ class Commander():
             self._store_cache(group['name']+'.dat', hostlist)
         self._store_cache('_groups.dat', grouplist)
 
-        return 'I: Cache reloaded'
-
     def ssh(self, *args):
-        print('I: Starting SSH session')
         subprocess.call(['ssh', args[0][0]])
-        return 'I: SSH session ended'
