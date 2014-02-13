@@ -19,4 +19,3 @@ if __name__ == '__main__':
             print c.cmd(cmd=cmd.split(' '))
     except EOFError:
         print "\nBye!"
-        pass
