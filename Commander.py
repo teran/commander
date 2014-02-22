@@ -11,26 +11,11 @@ class Commander():
         'hostlist',
         'p_exec',
         'reload',
-        'ssh'
+        'ssh',
+        'write_configuration'
     ]
-    def __init__(self, api_url='http://localhost', login='admin',
-                 password='zabbix',
-                 datadir='.commander'):
-        self.api_url = api_url
-        self.login = login
-        self.password = password
+    def __init__(self, datadir='.commander'):
         self.datadir = datadir
-
-    @property
-    def api(self):
-        if self._api:
-            return self._api
-
-        self._api = pyzabbix.ZabbixAPI(self.api_url)
-        self._api.login(self.login, self.password)
-
-        return self._api
-
 
     def _set_title(self, title='cmd.py'):
         print "\033]0;%s\007" % title
@@ -48,6 +33,23 @@ class Commander():
         f = open(os.path.join(self.datadir, file), 'w')
         f.write("\n".join(data)+"\n")
         f.close()
+
+    def _update_settings(self, url='http://localhost',
+                         login='admin', password='zabbix'):
+
+        self.url = url or self.url
+        self.login = login or self.login
+        self.password = password or self.password
+
+    @property
+    def api(self):
+        if self._api:
+            return self._api
+
+        self._api = pyzabbix.ZabbixAPI(self.url)
+        self._api.login(self.login, self.password)
+
+        return self._api
 
     def cmd(self, cmd):
         try:
@@ -68,6 +70,10 @@ class Commander():
             print g
 
         print 'Total: %s' % len(grouplist)
+
+    def hardware(self, *args):
+
+        pass
 
     def hostlist(self, *args):
         try:
@@ -113,5 +119,27 @@ class Commander():
             self._store_cache(group['name']+'.dat', hostlist)
         self._store_cache('_groups.dat', grouplist)
 
+    def read_configuration(self, *args):
+        try:
+            fp = open(os.path.join(self.datadir, 'settings.json'), 'r')
+            configuration = json.loads(fp.read())
+            fp.close()
+
+            for k in configuration.keys():
+                setattr(self, k, configuration[k])
+        except IOError:
+            pass
+
     def ssh(self, *args):
         subprocess.call(['ssh', args[0][0]])
+
+    def write_configuration(self, *args):
+        configuration = {
+            'url': self.url,
+            'login': self.login,
+            'password': self.password
+        }
+
+        fp = open(os.path.join(self.datadir, 'settings.json'), 'w')
+        fp.write(json.dumps(configuration, indent=4))
+        fp.close()
