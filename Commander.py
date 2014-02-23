@@ -17,11 +17,20 @@ class Commander():
     def __init__(self, datadir='.commander'):
         self.datadir = datadir
 
+    def _check_dirs(self):
+        if not os.path.exists(self.datadir):
+            os.mkdir(self.datadir)
+
+        if not os.path.exists(os.path.join(self.datadir, 'cache')):
+            os.mkdir(os.path.join(self.datadir, 'cache'))
+
     def _set_title(self, title='cmd.py'):
         print "\033]0;%s\007" % title
 
     def _read_cache(self, file):
-        f = open(os.path.join(self.datadir, file), 'r')
+        self._check_dirs()
+
+        f = open(os.path.join(self.datadir, 'cache', file), 'r')
         res = []
         for l in f.read().split("\n"):
             if l != '':
@@ -29,17 +38,18 @@ class Commander():
         f.close()
         return res
 
-    def _store_cache(self, file, data):
-        f = open(os.path.join(self.datadir, file), 'w')
-        f.write("\n".join(data)+"\n")
-        f.close()
-
     def _update_settings(self, url='http://localhost',
                          login='admin', password='zabbix'):
-
         self.url = url or self.url
         self.login = login or self.login
         self.password = password or self.password
+
+    def _write_cache(self, file, data):
+        self._check_dirs()
+
+        f = open(os.path.join(self.datadir, 'cache', file), 'w')
+        f.write("\n".join(data)+"\n")
+        f.close()
 
     @property
     def api(self):
@@ -65,7 +75,7 @@ class Commander():
             return
 
     def grouplist(self, *args):
-        grouplist = self._read_cache('_groups.dat')
+        grouplist = self._read_cache('_groups')
         for g in grouplist:
             print g
 
@@ -77,12 +87,12 @@ class Commander():
 
     def hostlist(self, *args):
         try:
-            hostlist = self._read_cache(args[0][0]+'.dat')
+            hostlist = self._read_cache(args[0][0])
         except IndexError:
             hostlist = []
-            grouplist = self._read_cache('_groups.dat')
+            grouplist = self._read_cache('_groups')
             for group in grouplist:
-                for host in self._read_cache(group+'.dat'):
+                for host in self._read_cache(group):
                     hostlist.append(host)
 
         for h in hostlist:
@@ -96,7 +106,7 @@ class Commander():
 
         self._set_title('p_exec %s' % group)
 
-        l = open(os.path.join(self.datadir, group+'.dat'))
+        l = open(os.path.join(self.datadir, 'cache', group))
         subprocess.call([
             'shmux',
             '-S', 'all',
@@ -116,8 +126,8 @@ class Commander():
             hostlist = []
             for host in hosts:
                 hostlist.append(host['host'])
-            self._store_cache(group['name']+'.dat', hostlist)
-        self._store_cache('_groups.dat', grouplist)
+            self._write_cache(group['name'], hostlist)
+        self._write_cache('_groups', grouplist)
 
     def read_configuration(self, *args):
         try:

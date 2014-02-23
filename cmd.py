@@ -27,6 +27,10 @@ if __name__ == '__main__':
                       help='Do not reload cache and use the previously '
                            'stored one')
 
+    parser.add_option('-d', '--enable-logging', action='store_true',
+                      default=False, dest='logging',
+                      help='Enable logging(log store in cache directory)')
+
     (options, args) = parser.parse_args()
 
     api_url = os.environ.get('ZABBIX_API_URL', 'http://localhost')
@@ -54,8 +58,11 @@ if __name__ == '__main__':
             comp = Terminal.Completer()
 
             readline.set_history_length(500)
-            readline.read_history_file(
-                os.path.join(c.datadir, '_history.dat'))
+            try:
+                readline.read_history_file(
+                    os.path.join(c.datadir, 'history'))
+            except IOError:
+                pass
             readline.set_completer_delims(' \t\n;')
             readline.parse_and_bind('tab: complete')
             readline.set_completer(comp.complete)
@@ -67,6 +74,6 @@ if __name__ == '__main__':
             c.cmd(cmd=cmd.split(' '))
 
             readline.write_history_file(
-                os.path.join(c.datadir, '_history.dat'))
+                os.path.join(c.datadir, 'history'))
     except EOFError:
         print "\nBye!"

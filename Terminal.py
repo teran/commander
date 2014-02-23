@@ -12,7 +12,7 @@ class Completer(object):
         self.COMMANDS = self.c.commands
 
     def complete_hostlist(self, args):
-        groups = self.c._read_cache('_groups.dat')
+        groups = self.c._read_cache('_groups')
         if args[0] == '':
             return groups
 
@@ -28,9 +28,9 @@ class Completer(object):
 
     def complete_ssh(self, args):
         res = []
-        grouplist = self.c._read_cache('_groups.dat')
+        grouplist = self.c._read_cache('_groups')
         for group in grouplist:
-            for host in self.c._read_cache(group + '.dat'):
+            for host in self.c._read_cache(group):
                 if host.startswith(args[0]):
                     res.append(host)
 
