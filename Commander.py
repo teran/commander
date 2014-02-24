@@ -82,7 +82,6 @@ class Commander():
         print 'Total: %s' % len(grouplist)
 
     def hardware(self, *args):
-
         pass
 
     def hostlist(self, *args):
