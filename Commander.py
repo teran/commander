@@ -4,6 +4,7 @@ import subprocess
 
 import pyzabbix
 
+
 class Commander():
     _api = None
     commands = [
@@ -14,6 +15,7 @@ class Commander():
         'ssh',
         'write_configuration'
     ]
+
     def __init__(self, datadir='.commander'):
         self.datadir = datadir
 
@@ -121,7 +123,7 @@ class Commander():
         for group in groups:
             grouplist.append(group['name'])
             hosts = self.api.host.get(output='extend',
-                                         groupids=group['groupid'])
+                                      groupids=group['groupid'])
             hostlist = []
             for host in hosts:
                 hostlist.append(host['host'])
