@@ -16,7 +16,7 @@ class Commander():
         'write_configuration'
     ]
 
-    def __init__(self, datadir='.commander'):
+    def __init__(self, datadir='%s/.commander' % os.path.expanduser('~')):
         self.datadir = datadir
 
     def _check_dirs(self):
