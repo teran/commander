@@ -9,6 +9,7 @@ requirements
 
  * pyzabbix
  * readline
+ * termcolor
 
 help page
 =========

@@ -3,6 +3,7 @@ import os
 import subprocess
 
 import pyzabbix
+from termcolor import colored
 
 
 class Commander():
@@ -81,7 +82,7 @@ class Commander():
         for g in grouplist:
             print g
 
-        print 'Total: %s' % len(grouplist)
+        print colored('>> Total: %s' % len(grouplist), 'magenta')
 
     def hardware(self, *args):
         pass
@@ -100,7 +101,7 @@ class Commander():
         for h in hostlist:
             print h
 
-        print 'Total: %s' % len(hostlist)
+        print colored('>> Total: %s' % len(hostlist), 'magenta')
 
     def p_exec(self, *args):
         group = args[0][0]
