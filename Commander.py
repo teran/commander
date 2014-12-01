@@ -17,8 +17,15 @@ class Commander():
         'write_configuration'
     ]
 
-    def __init__(self, datadir='%s/.commander' % os.path.expanduser('~')):
+    def __init__(self, datadir='%s/.commander' % os.path.expanduser('~'),
+                 info_color='magenta', prompt_color='blue', error_color='red',
+                 warning_color='yellow'):
         self.datadir = datadir
+
+        self.info_color = info_color
+        self.prompt_color = prompt_color
+        self.error_color = error_color
+        self.warning_color = warning_color
 
     def _check_dirs(self):
         if not os.path.exists(self.datadir):
@@ -82,7 +89,7 @@ class Commander():
         for g in grouplist:
             print g
 
-        print colored('>> Total: %s' % len(grouplist), 'magenta')
+        print colored('>> Total: %s' % len(grouplist), self.info_color)
 
     def hardware(self, *args):
         pass
@@ -101,7 +108,7 @@ class Commander():
         for h in hostlist:
             print h
 
-        print colored('>> Total: %s' % len(hostlist), 'magenta')
+        print colored('>> Total: %s' % len(hostlist), self.info_color)
 
     def p_exec(self, *args):
         group = args[0][0]

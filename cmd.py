@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import os
 import readline
+from termcolor import colored
 
 import Commander
 import Terminal
@@ -43,7 +44,7 @@ if __name__ == '__main__':
             'ZABBIX_API_URL', None),
         login=options.login or os.environ.get('ZABBIX_LOGIN', None),
         password=options.password or os.environ.get(
-            'ZABBIX_PASSWORD', None)
+            'ZABBIX_PASSWORD', None),
     )
 
     if not options.cache:
@@ -67,7 +68,7 @@ if __name__ == '__main__':
             readline.parse_and_bind('tab: complete')
             readline.set_completer(comp.complete)
 
-            cmd = raw_input('cmd> ').strip()
+            cmd = raw_input(colored('cmd> ', c.prompt_color)).strip()
             if cmd == '':
                 continue
 

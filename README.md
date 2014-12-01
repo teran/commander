@@ -32,7 +32,7 @@ how to start
 
 Just start it the same way:
 
-	cmd.py -u http://my-lovely-zabbix-instance -l username -p password
+    cmd.py -u http://my-lovely-zabbix-instance -l username -p password
 
 Now you have logged in into zabbix. It's very useful if you wanna connect to
  zabbix instance you want to use once.
@@ -40,3 +40,17 @@ Now you have logged in into zabbix. It's very useful if you wanna connect to
 If it's you lovely zabbix and you wanna use it everytime and do not add so
 many options you can do one of the following add ``-w`` option or use internal
 command ``write_configuration``. They are doing exaclty the same.
+
+configuration example
+=====================
+
+    cat ~/.commander/settings.json
+    {
+        "url": "http://myzabbix.com",
+        "login": "user",
+        "password": "password",
+        "info_color": "magenta",
+        "warning_color": "yellow",
+        "error_color": "red"
+        "prompt_color": "cyan",
+    }
