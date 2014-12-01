@@ -94,7 +94,8 @@ class Commander():
             grouplist = self._read_cache('_groups')
             for group in grouplist:
                 for host in self._read_cache(group):
-                    hostlist.append(host)
+                    if host not in hostlist:
+                        hostlist.append(host)
 
         for h in hostlist:
             print h
