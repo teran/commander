@@ -1,6 +1,8 @@
 import json
+import logging
 import os
 import subprocess
+import tempfile
 
 import pyzabbix
 from termcolor import colored
@@ -26,6 +28,11 @@ class Commander():
         self.prompt_color = prompt_color
         self.error_color = error_color
         self.warning_color = warning_color
+        self.debug = False
+
+        if os.environ.get('DEBUG') in ['1', 'true', 'on']:
+            self.logger = logging
+            self.debug = True
 
     def _check_dirs(self):
         if not os.path.exists(self.datadir):
@@ -61,6 +68,25 @@ class Commander():
         f.write("\n".join(data)+"\n")
         f.close()
 
+    def _parse_entity(self, entity_string):
+        entities = entity_string.split(',')
+        hostlist = []
+        for entity in entities:
+            if entity.startswith('%'):
+                try:
+                    hostlist.extend(self._read_cache(entity[1:]))
+                except IOError as e:
+                    print colored(
+                        '>>> Error: no such group %s' % entity,
+                        self.error_color)
+            else:
+                hostlist.append(entity)
+
+        if self.debug:
+            print colored('>>> %s' % hostlist, self.info_color)
+
+        return hostlist
+
     @property
     def api(self):
         if self._api:
@@ -80,8 +106,10 @@ class Commander():
 
         try:
             method(cmd[1:])
-        except TypeError:
+        except TypeError as e:
             print 'E: Wrong usage, try help to get how :)'
+            if self.debug:
+                print colored(e.message, 'red')
             return
 
     def grouplist(self, *args):
@@ -96,14 +124,20 @@ class Commander():
 
     def hostlist(self, *args):
         try:
-            hostlist = self._read_cache(args[0][0])
+            hostlist = self._parse_entity(args[0][0])
         except IndexError:
             hostlist = []
             grouplist = self._read_cache('_groups')
             for group in grouplist:
-                for host in self._read_cache(group):
-                    if host not in hostlist:
-                        hostlist.append(host)
+                try:
+                    for host in self._read_cache(group[1:]):
+                        if host not in hostlist:
+                            hostlist.append(host)
+                except IOError as e:
+                    print colored(
+                        '>>> Internal Error: no such group %s, plese do '
+                        'reload' % group,
+                        self.error_color)
 
         for h in hostlist:
             print h
@@ -111,26 +145,35 @@ class Commander():
         print colored('>> Total: %s' % len(hostlist), self.info_color)
 
     def p_exec(self, *args):
-        group = args[0][0]
+        entity = self._parse_entity(args[0][0])
         cmd = ' '.join(args[0][1:])
 
-        self._set_title('p_exec %s' % group)
+        self._set_title('p_exec %s' % args[0][0])
 
-        l = open(os.path.join(self.datadir, 'cache', group))
-        subprocess.call([
+        print colored('entity: %s' % entity, self.info_color)
+
+        t = tempfile.TemporaryFile()
+        t.write("\n".join(entity)+"\n")
+        t.seek(0)
+
+        execstr = [
             'shmux',
             '-S', 'all',
             '-M', '50',
             '-c', cmd,
             '-'
-        ], stdin=l)
-        l.close()
+        ]
+        print colored('>>> %s, stdin: %s' % (execstr, t.read()),
+                      self.info_color)
+        t.seek(0)
+        subprocess.call(execstr, stdin=t)
+        t.close()
 
     def reload(self, *args):
         groups = self.api.hostgroup.get(output='extend')
         grouplist = []
         for group in groups:
-            grouplist.append(group['name'])
+            grouplist.append('%{}'.format(group['name']))
             hosts = self.api.host.get(output='extend',
                                       groupids=group['groupid'])
             hostlist = []
