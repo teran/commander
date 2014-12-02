@@ -150,7 +150,8 @@ class Commander():
 
         self._set_title('p_exec %s' % args[0][0])
 
-        print colored('entity: %s' % entity, self.info_color)
+        if self.debug:
+            print colored('entity: %s' % entity, self.info_color)
 
         t = tempfile.TemporaryFile()
         t.write("\n".join(entity)+"\n")
@@ -163,8 +164,10 @@ class Commander():
             '-c', cmd,
             '-'
         ]
-        print colored('>>> %s, stdin: %s' % (execstr, t.read()),
-                      self.info_color)
+
+        if self.debug:
+            print colored(
+                '>>> %s, stdin: %s' % (execstr, t.read()), self.info_color)
         t.seek(0)
         subprocess.call(execstr, stdin=t)
         t.close()
@@ -174,8 +177,9 @@ class Commander():
         grouplist = []
         for group in groups:
             grouplist.append('%{}'.format(group['name']))
-            hosts = self.api.host.get(output='extend',
-                                      groupids=group['groupid'])
+            hosts = self.api.host.get(
+                output='extend',
+                groupids=group['groupid'])
             hostlist = []
             for host in hosts:
                 hostlist.append(host['host'])
@@ -194,7 +198,12 @@ class Commander():
             pass
 
     def ssh(self, *args):
-        subprocess.call(['ssh', args[0][0]])
+        entities = self._parse_entity(args[0][0])
+        if self.debug:
+            print colored('>>> entity: %s' % entities, self.error_color)
+
+        for entity in entities:
+            subprocess.call(['ssh', '-q', entity])
 
     def write_configuration(self, *args):
         configuration = {

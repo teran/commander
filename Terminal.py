@@ -26,14 +26,7 @@ class Completer(object):
         return self.complete_hostlist(args)
 
     def complete_ssh(self, args):
-        res = []
-        grouplist = self.c._read_cache('_groups')
-        for group in grouplist:
-            for host in self.c._read_cache(group):
-                if host.startswith(args[0]):
-                    res.append(host)
-
-        return res
+        return self.complete_hostlist(args)
 
     def complete(self, text, state):
         buffer = readline.get_line_buffer()
