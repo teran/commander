@@ -6,10 +6,14 @@ for hosts data
 
 requirements
 ============
+Python:
 
  * pyzabbix
  * readline
  * termcolor
+
+Binaries:
+ * shmux
 
 help page
 =========

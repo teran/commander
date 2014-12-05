@@ -161,14 +161,16 @@ class Commander():
             'shmux',
             '-S', 'all',
             '-M', '50',
-            '-c', cmd,
-            '-'
+            '-c', cmd
         ]
 
         if self.debug:
+            execstr.append('-v')
+            execstr.append('-D')
             print colored(
                 '>>> %s, stdin: %s' % (execstr, t.read()), self.info_color)
         t.seek(0)
+        execstr.append('-')
         subprocess.call(execstr, stdin=t)
         t.close()
 
