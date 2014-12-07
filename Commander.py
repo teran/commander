@@ -92,8 +92,17 @@ class Commander():
         if self._api:
             return self._api
 
-        self._api = pyzabbix.ZabbixAPI(self.url)
-        self._api.login(self.login, self.password)
+        from requests.exceptions import ConnectionError
+
+        try:
+            self._api = pyzabbix.ZabbixAPI(self.url)
+            self._api.login(self.login, self.password)
+        except ConnectionError:
+            print colored(
+                'Connection error: %s is not available right now, try to '
+                'use cache(-c option)' % (
+                    self.url), self.error_color)
+            exit(1)
 
         return self._api
 
