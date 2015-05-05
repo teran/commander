@@ -6,7 +6,7 @@ import commander.Commander
 
 class Completer(object):
     def __init__(self):
-        self.RE_SPACE = re.compile('.*\s+$', re.M)
+        self.RE_SPACE = re.compile('.*([\s\,]+)$', re.M)
         self.c = commander.Commander()
         self.COMMANDS = self.c.commands
 
