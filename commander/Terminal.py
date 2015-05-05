@@ -1,13 +1,13 @@
 import re
 import readline
 
-import Commander
+import commander.Commander
 
 
 class Completer(object):
     def __init__(self):
         self.RE_SPACE = re.compile('.*\s+$', re.M)
-        self.c = Commander.Commander()
+        self.c = commander.Commander()
         self.COMMANDS = self.c.commands
 
     def complete_hostlist(self, args):
